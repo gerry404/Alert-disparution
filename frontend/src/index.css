@@ -1,0 +1,78 @@
+/* Le gros du style vient de Mantine (voir theme.js).
+   Ici : le fond papier et quelques details "presse". */
+
+:root {
+  --papier: #f6f3ec;
+  --filet: #1c1915;
+}
+
+[data-mantine-color-scheme='dark'] {
+  --papier: #171512;
+  --filet: #e7e3dc;
+}
+
+body {
+  background: var(--papier);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* filet epais au-dessus des titres de rubrique, comme dans un journal */
+.rubrique {
+  border-top: 3px solid var(--filet);
+  padding-top: 0.6rem;
+}
+
+.filet-fin {
+  border-top: 1px solid var(--mantine-color-default-border);
+}
+
+.surtitre {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.carte-dossier {
+  transition: border-color 120ms ease;
+}
+
+.carte-dossier:hover {
+  border-color: var(--filet);
+}
+
+.carte-dossier[data-resolu] img,
+.carte-dossier[data-resolu] .vignette-vide {
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
+.vignette-vide {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--mantine-color-default-hover),
+    var(--mantine-color-default-hover) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  font-family: var(--mantine-font-family-headings);
+  font-weight: 600;
+  color: var(--mantine-color-dimmed);
+}
+
+.lien-souligne {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.lien-souligne:hover {
+  text-decoration-thickness: 2px;
+}

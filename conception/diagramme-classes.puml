@@ -1,0 +1,233 @@
+@startuml diagramme-classes
+title Alerte Disparition - Diagramme de classes
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+' ---------- Comptes ----------
+
+class Utilisateur {
+  - id : int
+  - nom : string
+  - prenom : string
+  - telephone : string
+  - email : string
+  - motDePasse : string
+  - role : Role
+  - actif : bool
+  - dateInscription : datetime
+  + sInscrire()
+  + seConnecter()
+  + modifierProfil()
+  + desactiverCompte()
+}
+
+enum Role {
+  DECLARANT
+  MODERATEUR
+  ADMIN
+}
+
+' ---------- Localisation ----------
+
+class Region {
+  - id : int
+  - nom : string
+}
+
+class Ville {
+  - id : int
+  - nom : string
+}
+
+class Quartier {
+  - id : int
+  - nom : string
+  - arrondissement : string
+}
+
+' ---------- Dossiers ----------
+
+abstract class Dossier {
+  - id : int
+  - reference : string
+  - slug : string
+  - description : text
+  - dateFaits : datetime
+  - lieuPrecis : string
+  - statut : StatutDossier
+  - masque : bool
+  - dateSoumission : datetime
+  - datePublication : datetime
+  + soumettre()
+  + changerStatut(nouveau, motif)
+  + lienPublic() : string
+}
+
+class DossierPersonne {
+  - nomComplet : string
+  - sexe : string
+  - age : int
+  - descriptionPhysique : text
+  - signesDistinctifs : text
+  - circonstances : text
+  + estMineur() : bool
+}
+
+class DossierObjet {
+  - nature : NatureObjet
+  - marque : string
+  - modele : string
+  - couleur : string
+  - signesDistinctifs : text
+}
+
+enum NatureObjet {
+  PERDU
+  TROUVE
+}
+
+enum StatutDossier {
+  EN_ATTENTE
+  PUBLIE
+  EN_VERIFICATION
+  RESOLU
+  REJETE
+}
+
+class Categorie {
+  - id : int
+  - libelle : string
+  - sensible : bool
+}
+
+class Photo {
+  - id : int
+  - chemin : string
+  - publique : bool
+}
+
+class HistoriqueStatut {
+  - id : int
+  - ancienStatut : StatutDossier
+  - nouveauStatut : StatutDossier
+  - motif : text
+  - date : datetime
+}
+
+' ---------- Temoignages ----------
+' Decision du groupe : pas besoin de compte pour temoigner,
+' on garde juste un moyen de recontacter le temoin.
+
+class Temoignage {
+  - id : int
+  - type : TypeTemoignage
+  - dateFaits : datetime
+  - lieuPrecis : string
+  - description : text
+  - pieceJointe : string
+  - nomTemoin : string
+  - telephoneTemoin : string
+  - anonyme : bool
+  - statut : StatutTemoignage
+  - dateSoumission : datetime
+}
+
+enum TypeTemoignage {
+  APERCU
+  INFORMATION
+}
+
+enum StatutTemoignage {
+  EN_ATTENTE
+  PUBLIE
+  REJETE
+  MASQUE
+}
+
+class AccesIdentite {
+  - id : int
+  - motif : string
+  - date : datetime
+}
+
+' ---------- Retrouvailles ----------
+
+class DeclarationRetrouvaille {
+  - id : int
+  - description : text
+  - preuve : string
+  - nomDeclarant : string
+  - telephoneDeclarant : string
+  - statut : string
+  - date : datetime
+  + confirmer()
+  + infirmer()
+}
+
+' ---------- Objets : rapprochement ----------
+
+class Correspondance {
+  - id : int
+  - score : int
+  - statut : string
+  - dateDetection : datetime
+}
+
+' ---------- Alertes ----------
+
+class AbonnementAlerte {
+  - id : int
+  - actif : bool
+  - dateCreation : datetime
+}
+
+class Notification {
+  - id : int
+  - canal : string
+  - message : string
+  - dateEnvoi : datetime
+  - lue : bool
+}
+
+' ================= Relations =================
+
+Utilisateur --> Role
+
+Region "1" *-- "1..*" Ville
+Ville "1" *-- "1..*" Quartier
+
+Dossier <|-- DossierPersonne
+Dossier <|-- DossierObjet
+Dossier --> StatutDossier
+DossierObjet --> NatureObjet
+
+Utilisateur "1" -- "0..*" Dossier : declare >
+Utilisateur "0..1" -- "0..*" Dossier : modere >
+Dossier "0..*" -- "1" Quartier : localise dans >
+DossierObjet "0..*" -- "1" Categorie
+Dossier "1" *-- "0..*" Photo
+Dossier "1" *-- "0..*" HistoriqueStatut
+HistoriqueStatut "0..*" -- "1" Utilisateur : auteur >
+
+Dossier "1" *-- "0..*" Temoignage
+Temoignage --> TypeTemoignage
+Temoignage --> StatutTemoignage
+Temoignage "0..*" -- "0..1" Quartier : observe a >
+Temoignage "0..*" -- "0..1" Utilisateur : valide par >
+AccesIdentite "0..*" -- "1" Temoignage
+AccesIdentite "0..*" -- "1" Utilisateur : consulte par >
+
+Dossier "1" *-- "0..*" DeclarationRetrouvaille
+DeclarationRetrouvaille "0..*" -- "0..1" Utilisateur : traitee par >
+
+Correspondance "0..*" -- "1" DossierObjet : objet perdu >
+Correspondance "0..*" -- "1" DossierObjet : objet trouve >
+
+Utilisateur "1" *-- "0..*" AbonnementAlerte
+AbonnementAlerte "0..*" -- "1" Quartier : surveille >
+Utilisateur "1" -- "0..*" Notification : recoit >
+Notification "0..*" -- "1" Dossier : concerne >
+
+@enduml
