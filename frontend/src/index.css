@@ -159,3 +159,46 @@ a {
       #000 url('./assets/ensemble-poing.jpg') center / cover no-repeat;
   }
 }
+
+/* petite carte de la fiche */
+.carte-zone {
+  position: relative;
+  z-index: 0;          /* les calques Leaflet ne passent pas au-dessus des modales */
+  isolation: isolate;
+  height: 190px;
+  border-radius: var(--mantine-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--mantine-color-default-border);
+}
+
+.carte-zone .leaflet-control-attribution {
+  font-size: 9px;
+}
+
+.carte-etiquette {
+  font: 600 11px var(--mantine-font-family);
+  padding: 2px 6px;
+}
+
+.pastille-carte {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.pastille-zone {
+  background: rgba(182, 49, 31, 0.3);
+  border: 2px solid #b6311f;
+}
+
+.pastille-vu {
+  background: #d97706;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #d97706;
+}
+
+/* fond de carte assombri en mode sombre */
+[data-mantine-color-scheme='dark'] .carte-zone .leaflet-tile-pane {
+  filter: brightness(0.75) invert(1) hue-rotate(180deg) saturate(0.6);
+}

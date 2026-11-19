@@ -3,7 +3,7 @@ import {
   Table, Text, Timeline, Title, Tooltip,
 } from '@mantine/core'
 import { IconArrowLeft, IconBrandFacebook, IconBrandWhatsapp, IconCheck, IconLink } from '@tabler/icons-react'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Dossiers } from '../api'
 import { Vignette } from '../components/DossierCard'
@@ -11,6 +11,8 @@ import { informer, StatutBadge, Vide } from '../components/ui'
 import { date, dateHeure, ilYa, TYPES } from '../format'
 import FormTemoignage from './FormTemoignage'
 import { useRequete } from '../hooks'
+
+const CarteZone = lazy(() => import('../components/CarteZone'))
 
 export default function Fiche() {
   const { slug } = useParams()
@@ -113,6 +115,20 @@ export default function Fiche() {
               <Text fw={600} size="lg">{dateHeure(d.dateFaits)}</Text>
             </div>
           </Group>
+
+          {d.latitude && d.longitude && (
+            <Box mt="md">
+              <Suspense fallback={<Skeleton height={190} radius="md" />}>
+                <CarteZone dossier={d} temoignages={temoignages} />
+              </Suspense>
+              <Group gap="md" mt={6}>
+                <Group gap={6}><span className="pastille-carte pastille-zone" /><Text size="xs" c="dimmed">Zone approximative ({d.quartier})</Text></Group>
+                {temoignages.some((t) => t.latitude) && (
+                  <Group gap={6}><span className="pastille-carte pastille-vu" /><Text size="xs" c="dimmed">Signalé par un témoin</Text></Group>
+                )}
+              </Group>
+            </Box>
+          )}
 
           {(d.circonstances || d.description) && (
             <Text mt="lg" style={{ whiteSpace: 'pre-line' }}>{d.circonstances || d.description}</Text>

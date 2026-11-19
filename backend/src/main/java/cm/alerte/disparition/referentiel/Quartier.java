@@ -24,4 +24,9 @@ public class Quartier {
     @ManyToOne(optional = false)
     @JoinColumn(name = "ville_id")
     private Ville ville;
+
+    /** Centre approximatif du quartier (jamais une adresse). */
+    private Double latitude;
+
+    private Double longitude;
 }

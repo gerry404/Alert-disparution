@@ -22,10 +22,12 @@ public final class TemoignageDtos {
     }
 
     public record TemoignagePublic(Long id, Temoignage.Type type, LocalDateTime dateFaits, String quartier,
-                                   String description, String auteur) {
+                                   Double latitude, Double longitude, String description, String auteur) {
         static TemoignagePublic de(Temoignage t) {
+            var q = t.getQuartier();
             return new TemoignagePublic(t.getId(), t.getType(), t.getDateFaits(),
-                    t.getQuartier() == null ? null : t.getQuartier().getNom(), t.getDescription(), t.auteurPublic());
+                    q == null ? null : q.getNom(), q == null ? null : q.getLatitude(), q == null ? null : q.getLongitude(),
+                    t.getDescription(), t.auteurPublic());
         }
     }
 
