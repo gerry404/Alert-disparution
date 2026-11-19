@@ -17,7 +17,8 @@ public final class DossierDtos {
     public record DossierPublic(
             Long id, String reference, String slug, TypeDossier type, StatutDossier statut,
             String titre, String description, LocalDateTime dateFaits, LocalDateTime datePublication,
-            Long quartierId, String quartier, String ville, String categorie, String photo,
+            Long quartierId, String quartier, String ville, Double latitude, Double longitude,
+            String categorie, String photo,
             String nomComplet, String sexe, Integer age, String descriptionPhysique, String circonstances,
             String marque, String modele, String couleur, String signesDistinctifs) {
 
@@ -26,6 +27,7 @@ public final class DossierDtos {
                     d.getId(), d.getReference(), d.getSlug(), d.getType(), d.getStatut(),
                     d.getTitre(), d.getDescription(), d.getDateFaits(), d.getDatePublication(),
                     d.getQuartier().getId(), d.getQuartier().getNom(), d.getQuartier().getVille().getNom(),
+                    d.getQuartier().getLatitude(), d.getQuartier().getLongitude(),
                     d.getCategorie() == null ? null : d.getCategorie().getLibelle(),
                     d.photoPubliable() ? d.getPhoto() : null,
                     d.getNomComplet(), d.getSexe(), d.getAge(), d.getDescriptionPhysique(), d.getCirconstances(),
