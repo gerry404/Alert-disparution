@@ -121,3 +121,18 @@ a {
   line-height: 1.1;
   text-transform: uppercase; /* police en capitales : les lettres de repli suivent */
 }
+
+/* bandeau de l'accueil : photo de Douala sous un voile sombre, texte blanc */
+.bandeau-accueil {
+  position: relative;
+  color: #fff;
+  background:
+    linear-gradient(180deg, rgba(20, 17, 13, 0.62) 0%, rgba(20, 17, 13, 0.78) 100%),
+    url('./assets/douala-deido.jpg') center 30% / cover no-repeat;
+  border-bottom: 3px solid var(--filet);
+}
+
+.bandeau-accueil .titre-affiche {
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+}
