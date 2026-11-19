@@ -122,7 +122,7 @@ function CarteDossier({ d, onPublier, onDecision }) {
         <Grid.Col span="auto">
           <Group gap="xs">
             <Text className="surtitre" c={TYPES[i.type].couleur} fw={600}>{TYPES[i.type].surtitre}</Text>
-            <StatutBadge statut={i.statut} />
+            <StatutBadge statut={i.statut} type={i.type} />
             {d.mineur && <Badge color="brique">Mineur</Badge>}
             {d.masque && <Badge color="gray">Masqué</Badge>}
           </Group>

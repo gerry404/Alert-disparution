@@ -42,6 +42,35 @@ public class LimiteurDebit {
         }
     }
 
+    /**
+     * Variante "compter seulement les echecs" (connexion) : on refuse si trop d'echecs recents,
+     * sans consommer de jeton ; {@link #enregistrerEchec} et {@link #effacer} gerent le compteur.
+     */
+    public void exigerNonBloque(String cle, int maxEchecs, Duration fenetre) {
+        Deque<Long> appels = fenetres.get(cle);
+        if (appels == null) return;
+        long maintenant = horloge.millis();
+        synchronized (appels) {
+            while (!appels.isEmpty() && maintenant - appels.peekFirst() >= fenetre.toMillis()) {
+                appels.pollFirst();
+            }
+            if (appels.size() >= maxEchecs) {
+                throw ErreurMetier.tropDeRequetes();
+            }
+        }
+    }
+
+    public void enregistrerEchec(String cle) {
+        Deque<Long> appels = fenetres.computeIfAbsent(cle, k -> new ArrayDeque<>());
+        synchronized (appels) {
+            appels.addLast(horloge.millis());
+        }
+    }
+
+    public void effacer(String cle) {
+        fenetres.remove(cle);
+    }
+
     public void reinitialiser() {
         fenetres.clear();
     }

@@ -1,7 +1,27 @@
 import { AspectRatio, Box, Card, Group, Image, Skeleton, Stack, Text, Title } from '@mantine/core'
+import {
+  IconBackpack, IconBox, IconCreditCard, IconDeviceLaptop, IconDeviceMobile, IconFileText, IconId, IconKey, IconPaw,
+} from '@tabler/icons-react'
+import { createElement } from 'react'
 import { Link } from 'react-router-dom'
 import { ilYa, initiales, TYPES } from '../format'
 import { StatutBadge } from './ui'
+
+// pictogramme selon la categorie de l'objet (libelles de la migration V2)
+const ICONES = [
+  [/t[ée]l[ée]phone/i, IconDeviceMobile],
+  [/sac|portefeuille/i, IconBackpack],
+  [/cl[ée]s/i, IconKey],
+  [/identit|passeport/i, IconId],
+  [/bancaire/i, IconCreditCard],
+  [/document/i, IconFileText],
+  [/ordinateur|tablette/i, IconDeviceLaptop],
+  [/animal/i, IconPaw],
+]
+
+function iconeDe(categorie) {
+  return ICONES.find(([motif]) => motif.test(categorie || ''))?.[1] ?? IconBox
+}
 
 export function Vignette({ dossier, ratio = 4 / 3, taille = 44 }) {
   return (
@@ -10,7 +30,9 @@ export function Vignette({ dossier, ratio = 4 / 3, taille = 44 }) {
         <Image src={dossier.photo} alt={dossier.titre} fit="cover" loading="lazy" />
       ) : (
         <div className="vignette-vide" style={{ fontSize: taille }}>
-          {dossier.type === 'PERSONNE' ? initiales(dossier.nomComplet || dossier.titre) : '—'}
+          {dossier.type === 'PERSONNE'
+            ? initiales(dossier.nomComplet || dossier.titre)
+            : createElement(iconeDe(dossier.categorie), { size: taille * 1.6, stroke: 1.3 })}
         </div>
       )}
     </AspectRatio>
@@ -39,7 +61,7 @@ export default function DossierCard({ dossier: d }) {
       <Stack gap={4} p="md">
         <Group justify="space-between" gap="xs">
           <Text className="surtitre" c={type.couleur} fw={600}>{type.surtitre}</Text>
-          {d.statut !== 'PUBLIE' && <StatutBadge statut={d.statut} />}
+          {d.statut !== 'PUBLIE' && <StatutBadge statut={d.statut} type={d.type} />}
         </Group>
         <Title order={3} lineClamp={2}>{d.titre}</Title>
         {sousTitre(d) && <Text size="sm" c="dimmed">{sousTitre(d)}</Text>}

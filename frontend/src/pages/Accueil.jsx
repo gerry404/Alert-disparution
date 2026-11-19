@@ -3,8 +3,7 @@ import { IconArrowRight, IconSearch } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Dossiers } from '../api'
-import DossierCard, { CarteSquelette, Vignette } from '../components/DossierCard'
-import { dateHeure, TYPES } from '../format'
+import DossierCard, { CarteSquelette } from '../components/DossierCard'
 
 function Rubrique({ type, titre, lien }) {
   const [liste, setListe] = useState(null)
@@ -16,7 +15,7 @@ function Rubrique({ type, titre, lien }) {
   return (
     <Box className="rubrique" mt={56}>
       <Group justify="space-between" align="baseline" mb="lg">
-        <Title order={2}>{titre}</Title>
+        <Title order={2} className="titre-affiche" fz={32}>{titre}</Title>
         <Anchor component={Link} to={lien} size="sm" fw={600} className="lien-souligne">
           Tout voir
         </Anchor>
@@ -26,33 +25,6 @@ function Rubrique({ type, titre, lien }) {
           ? [1, 2, 3].map((i) => <CarteSquelette key={i} />)
           : liste.map((d) => <DossierCard key={d.id} dossier={d} />)}
       </SimpleGrid>
-    </Box>
-  )
-}
-
-// L'avis le plus recent d'une personne disparue, mis en avant comme une affiche
-function ALaUne() {
-  const [d, setD] = useState(undefined)
-  useEffect(() => {
-    Dossiers.rechercher({ type: 'PERSONNE', taille: 1 }).then((p) => setD(p.contenu[0] || null)).catch(() => setD(null))
-  }, [])
-  if (!d) return null
-
-  return (
-    <Box component={Link} to={`/d/${d.slug}`} style={{ display: 'block' }}>
-      <Box p="md" style={{ border: '2px solid var(--filet)' }}>
-        <Text className="surtitre" c="brique.7" fw={600} ta="center" mb="xs">
-          Avis de recherche
-        </Text>
-        <Vignette dossier={d} ratio={1} taille={72} />
-        <Title order={2} ta="center" mt="md">{d.nomComplet || d.titre}</Title>
-        <Text ta="center" size="sm" c="dimmed" mt={4}>
-          {[d.age && `${d.age} ans`, d.quartier].filter(Boolean).join(' · ')}
-        </Text>
-        <Text ta="center" size="sm" mt="xs">
-          Vu(e) pour la dernière fois le {dateHeure(d.dateFaits)}
-        </Text>
-      </Box>
     </Box>
   )
 }
@@ -68,55 +40,45 @@ export default function Accueil() {
 
   return (
     <Container size="lg" pt={{ base: 32, md: 56 }}>
-      <Grid gutter={{ base: 32, md: 64 }} align="center">
-        <Grid.Col span={{ base: 12, md: 7 }}>
-          <Stack gap="lg">
-            <Title order={1}>
-              Quelqu'un manque à l'appel ?<br />
-              Douala peut aider à le retrouver.
-            </Title>
-            <Text size="lg" c="dimmed" maw={540}>
-              Les avis de recherche circulent sur WhatsApp puis se perdent. Ici, ils restent au même
-              endroit, vérifiés, et chacun peut transmettre ce qu'il a vu sans donner son nom.
-            </Text>
+      <Stack gap="lg" align="center" ta="center" maw={680} mx="auto" pt={{ base: 8, md: 24 }}>
+        <Title order={1} className="titre-affiche" fz={{ base: 40, sm: 56 }}>
+          Quelqu'un manque à l'appel ?<br />
+          tu peut aider à le retrouver.
+        </Title>
+        <Text size="lg" c="dimmed" maw={560}>
+          Les avis de recherche circulent sur WhatsApp puis se perdent. Ici, ils restent au même
+          endroit, vérifiés, et chacun peut transmettre ce qu'il a vu sans donner son nom.
+        </Text>
 
-            <form onSubmit={rechercher}>
-              <Group gap="xs" align="flex-start" wrap="nowrap">
-                <TextInput
-                  flex={1}
-                  size="md"
-                  placeholder="Un nom, un objet, un quartier…"
-                  leftSection={<IconSearch size={18} />}
-                  value={q}
-                  onChange={(e) => setQ(e.currentTarget.value)}
-                  aria-label="Rechercher"
-                />
-                <Button type="submit" size="md">Chercher</Button>
-              </Group>
-            </form>
+        <form onSubmit={rechercher} style={{ width: '100%', maxWidth: 560 }}>
+          <Group gap="xs" wrap="nowrap">
+            <TextInput
+              flex={1}
+              size="md"
+              radius="xl"
+              placeholder="Un nom, un objet, un quartier…"
+              leftSection={<IconSearch size={18} />}
+              value={q}
+              onChange={(e) => setQ(e.currentTarget.value)}
+              aria-label="Rechercher"
+            />
+            <Button type="submit" size="md">Chercher</Button>
+          </Group>
+        </form>
 
-            <Group gap="xl">
-              <Anchor component={Link} to="/signaler" fw={600} className="lien-souligne">
-                Signaler une disparition
-              </Anchor>
-              <Anchor component={Link} to="/signaler?type=OBJET_TROUVE" fw={600} className="lien-souligne">
-                J'ai trouvé un objet
-              </Anchor>
-            </Group>
-          </Stack>
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 5 }}>
-          <ALaUne />
-        </Grid.Col>
-      </Grid>
+        <Group gap="sm" justify="center">
+          <Button component={Link} to="/signaler" color="brique.7">Signaler une disparition</Button>
+          <Button component={Link} to="/signaler?type=OBJET_TROUVE" variant="default">J'ai trouvé un objet</Button>
+        </Group>
+      </Stack>
 
       <Rubrique type="PERSONNE" titre="Personnes recherchées" lien="/dossiers?type=PERSONNE" />
-      <Rubrique type="OBJET_PERDU" titre={TYPES.OBJET_PERDU.libelle + 's'} lien="/dossiers?type=OBJET_PERDU" />
-      <Rubrique type="OBJET_TROUVE" titre={TYPES.OBJET_TROUVE.libelle + 's'} lien="/dossiers?type=OBJET_TROUVE" />
+      <Rubrique type="OBJET_PERDU" titre="Objets perdus" lien="/dossiers?type=OBJET_PERDU" />
+      <Rubrique type="OBJET_TROUVE" titre="Objets trouvés" lien="/dossiers?type=OBJET_TROUVE" />
 
       <Box className="rubrique" mt={72}>
-        <Title order={2} mb="lg">Comment ça se passe</Title>
-        <SimpleGrid cols={{ base: 1, sm: 3 }} spacing={40}>
+        <Title order={2} mb="lg" ta="center" className="titre-affiche" fz={32}>Comment ça se passe</Title>
+        <SimpleGrid cols={{ base: 1, sm: 3 }} spacing={40} ta="center">
           <Stack gap={6}>
             <Text ff="heading" fz={40} lh={1} c="dimmed">1</Text>
             <Text fw={600}>La famille publie l'avis</Text>
@@ -145,7 +107,7 @@ export default function Accueil() {
 
       <Grid mt={72} gutter={40} className="rubrique" pt="lg">
         <Grid.Col span={{ base: 12, md: 5 }}>
-          <Title order={2}>Parler sans s'exposer</Title>
+          <Title order={2} className="titre-affiche" fz={32}>Parler sans s'exposer</Title>
         </Grid.Col>
         <Grid.Col span={{ base: 12, md: 7 }}>
           <Stack gap="md">

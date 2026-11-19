@@ -9,7 +9,8 @@ import java.time.LocalDateTime;
 
 public final class UtilisateurDtos {
 
-    static final String REGEX_TEL = "^(\\+237|00237)?[\\s.-]?6([\\s.-]?\\d){8}$";
+    /** 6XXXXXXXX, avec ou sans +237 / 00237 / 237 devant, espaces ou points autorises. */
+    public static final String REGEX_TEL = "^(\\+?237|00237)?[\\s.-]?6([\\s.-]?\\d){8}$";
 
     private UtilisateurDtos() {
     }

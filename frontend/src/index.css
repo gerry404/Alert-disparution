@@ -1,14 +1,37 @@
+/* Police d'affiche pour les grands titres de l'accueil (licence : public/fonts/LICENCE-rocks-death.txt) */
+@font-face {
+  font-family: 'Rocks Death';
+  src: url('/fonts/rocks-death.woff2') format('woff2');
+  font-display: swap;
+  /* la police n'a que l'ASCII : ses glyphes accentues sont vides, le navigateur
+     prend donc la police de repli pour é, à, ç, ’... au lieu d'afficher un trou */
+  unicode-range: U+0020-007E;
+}
+
 /* Le gros du style vient de Mantine (voir theme.js).
-   Ici : le fond papier et quelques details "presse". */
+   Ici : le fond papier, les contrastes du mode clair et quelques details "presse". */
 
 :root {
-  --papier: #f6f3ec;
+  --papier: #f4f0e8;
   --filet: #1c1915;
 }
 
-[data-mantine-color-scheme='dark'] {
+/* Mode clair : Mantine utilise des gris trop pales sur un fond creme.
+   On fonce le texte secondaire, les bordures et les boutons neutres. */
+:root[data-mantine-color-scheme='light'] {
+  --mantine-color-dimmed: #5f574b;
+  --mantine-color-placeholder: #8a8173;
+  --mantine-color-default-border: #b9af9f;
+  --mantine-color-default: #ffffff;
+  --mantine-color-default-hover: #ece6db;
+  --mantine-color-default-color: #1c1915;
+}
+
+:root[data-mantine-color-scheme='dark'] {
   --papier: #171512;
   --filet: #e7e3dc;
+  --mantine-color-dimmed: #a9a196;
+  --mantine-color-default-border: #4a443b;
 }
 
 body {
@@ -18,6 +41,19 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* bouton desactive : lisible quand meme (gris fonce sur gris clair, pas blanc sur blanc) */
+[data-mantine-color-scheme='light'] .mantine-Button-root:disabled,
+[data-mantine-color-scheme='light'] .mantine-Button-root[data-disabled] {
+  background: #e4ded3;
+  color: #6f675a;
+  border-color: #cfc6b7;
+}
+
+/* bouton "subtil" gris : texte fonce en clair */
+[data-mantine-color-scheme='light'] .mantine-Button-root[data-variant='subtle'] {
+  color: #3d372e;
 }
 
 /* filet epais au-dessus des titres de rubrique, comme dans un journal */
@@ -38,7 +74,7 @@ a {
 }
 
 .carte-dossier {
-  transition: border-color 120ms ease;
+  transition: border-color 120ms ease, transform 120ms ease;
 }
 
 .carte-dossier:hover {
@@ -75,4 +111,13 @@ a {
 
 .lien-souligne:hover {
   text-decoration-thickness: 2px;
+}
+
+/* grands titres de l'accueil, facon affiche "avis de recherche" */
+.titre-affiche {
+  font-family: 'Rocks Death', var(--mantine-font-family-headings);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  text-transform: uppercase; /* police en capitales : les lettres de repli suivent */
 }

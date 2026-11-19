@@ -307,6 +307,33 @@ class CriteresAcceptationTest {
     }
 
     @Test
+    @DisplayName("Connexion : se connecter souvent ne bloque pas, seuls les echecs comptent")
+    void connexionsRepetees() throws Exception {
+        String tel = "6" + compteur.incrementAndGet();
+        mvc.perform(post("/api/auth/inscription").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nom\":\"Test\",\"telephone\":\"+237 " + tel + "\",\"motDePasse\":\"motdepasse\"}"))
+                .andExpect(status().isCreated());
+        for (int i = 0; i < 15; i++) {
+            mvc.perform(post("/api/auth/connexion").contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"telephone\":\"" + tel + "\",\"motDePasse\":\"motdepasse\"}")).andExpect(status().isOk());
+        }
+    }
+
+    @Test
+    @DisplayName("Connexion : bloquee apres trop d'echecs, meme avec le bon mot de passe ensuite")
+    void forceBrute() throws Exception {
+        String tel = "6" + compteur.incrementAndGet();
+        mvc.perform(post("/api/auth/inscription").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nom\":\"Test\",\"telephone\":\"" + tel + "\",\"motDePasse\":\"motdepasse\"}"));
+        for (int i = 0; i < 8; i++) {
+            mvc.perform(post("/api/auth/connexion").contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"telephone\":\"" + tel + "\",\"motDePasse\":\"mauvais\"}")).andExpect(status().isUnauthorized());
+        }
+        mvc.perform(post("/api/auth/connexion").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"telephone\":\"" + tel + "\",\"motDePasse\":\"motdepasse\"}")).andExpect(status().isTooManyRequests());
+    }
+
+    @Test
     @DisplayName("Deconnexion : le token ne fonctionne plus")
     void deconnexion() throws Exception {
         String token = inscrire();

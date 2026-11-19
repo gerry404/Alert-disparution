@@ -41,6 +41,11 @@ export default function Recherche() {
     }, { replace: cle !== 'page' })
   }
 
+  // l'URL change depuis l'exterieur (lien "Consulter les avis", bouton precedent) : le champ suit
+  useEffect(() => {
+    setSaisie((s) => (s.trim() === filtres.q ? s : filtres.q))
+  }, [filtres.q])
+
   useEffect(() => {
     if (filtres.q !== saisieStable.trim()) changer('q', saisieStable.trim())
     // eslint-disable-next-line react-hooks/exhaustive-deps

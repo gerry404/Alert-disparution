@@ -23,13 +23,13 @@ public class SecurityConfig {
                 .csrf(c -> c.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .headers(h -> h
-                        .frameOptions(f -> f.sameOrigin()) // console H2 en dev
+                        .frameOptions(f -> f.deny())
                         .referrerPolicy(r -> r.policy(ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)))
                 .authorizeHttpRequests(a -> a
                         .requestMatchers(HttpMethod.POST, "/api/auth/inscription", "/api/auth/connexion").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/dossiers/**", "/api/referentiel/**", "/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/dossiers/*/temoignages").permitAll()
-                        .requestMatchers("/h2-console/**", "/error").permitAll()
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/moderation/**").hasAnyRole("MODERATEUR", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())

@@ -1,7 +1,7 @@
 import { Alert, Button, Fieldset, Radio, Select, SimpleGrid, Stack, Switch, Text, Textarea, TextInput } from '@mantine/core'
 import { useState } from 'react'
 import { Dossiers } from '../api'
-import { maintenantLocal } from '../format'
+import { formaterTelephone, maintenantLocal } from '../format'
 import { useQuartiers } from '../hooks'
 
 export default function FormTemoignage({ dossier, onEnvoye }) {
@@ -99,7 +99,8 @@ export default function FormTemoignage({ dossier, onEnvoye }) {
                 type="tel"
                 placeholder="6XX XX XX XX"
                 value={f.telephoneTemoin}
-                onChange={champ('telephoneTemoin')}
+                onChange={(e) => set('telephoneTemoin', formaterTelephone(e.currentTarget.value))}
+                inputMode="numeric"
                 error={erreurs.telephoneTemoin}
                 required
               />

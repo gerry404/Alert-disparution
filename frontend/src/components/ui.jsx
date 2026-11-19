@@ -1,16 +1,15 @@
 import { Badge, Button, Group, Modal, Stack, Text, Textarea, Title } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { useEffect, useState } from 'react'
-import { STATUTS, TYPES } from '../format'
+import { libelleStatut, STATUTS, TYPES } from '../format'
 
 export function TypeBadge({ type }) {
   const t = TYPES[type]
   return <Badge color={t.couleur} variant="light">{t.libelle}</Badge>
 }
 
-export function StatutBadge({ statut }) {
-  const s = STATUTS[statut]
-  return <Badge color={s.couleur} variant="dot">{s.libelle}</Badge>
+export function StatutBadge({ statut, type }) {
+  return <Badge color={STATUTS[statut].couleur} variant="dot">{libelleStatut(statut, type)}</Badge>
 }
 
 export function Vide({ titre, children }) {
