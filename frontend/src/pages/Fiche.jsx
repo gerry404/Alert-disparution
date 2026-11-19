@@ -3,25 +3,20 @@ import {
   Table, Text, Timeline, Title, Tooltip,
 } from '@mantine/core'
 import { IconArrowLeft, IconBrandFacebook, IconBrandWhatsapp, IconCheck, IconLink } from '@tabler/icons-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Dossiers } from '../api'
 import { Vignette } from '../components/DossierCard'
 import { informer, StatutBadge, Vide } from '../components/ui'
 import { date, dateHeure, ilYa, TYPES } from '../format'
 import FormTemoignage from './FormTemoignage'
+import { useRequete } from '../hooks'
 
 export default function Fiche() {
   const { slug } = useParams()
-  const [fiche, setFiche] = useState(null)
-  const [erreur, setErreur] = useState(null)
   const [modal, setModal] = useState(false)
-
-  useEffect(() => {
-    setFiche(null)
-    setErreur(null)
-    Dossiers.fiche(slug).then(setFiche).catch(setErreur)
-  }, [slug])
+  const { data: d, erreur } = useRequete(() => Dossiers.fiche(slug), [slug])
+  const { data: temoignages = [] } = useRequete(() => Dossiers.temoignages(d.id), [d?.id], { actif: !!d })
 
   if (erreur) {
     return (
@@ -33,7 +28,7 @@ export default function Fiche() {
     )
   }
 
-  if (!fiche) {
+  if (!d) {
     return (
       <Container size="lg" pt={40}>
         <Grid gutter={48}>
@@ -48,7 +43,6 @@ export default function Fiche() {
     )
   }
 
-  const d = fiche.dossier
   const type = TYPES[d.type]
   const estPersonne = d.type === 'PERSONNE'
   const actif = d.statut === 'PUBLIE' || d.statut === 'EN_VERIFICATION'
@@ -190,12 +184,12 @@ export default function Fiche() {
 
         <Grid.Col span={{ base: 12, md: 7 }}>
           <Box className="rubrique">
-            <Title order={3} mb="md">Témoignages ({fiche.temoignages.length})</Title>
-            {fiche.temoignages.length === 0 ? (
+            <Title order={3} mb="md">Témoignages ({temoignages.length})</Title>
+            {temoignages.length === 0 ? (
               <Text c="dimmed" size="sm">Aucun témoignage publié pour l'instant.</Text>
             ) : (
               <Timeline bulletSize={14} lineWidth={1}>
-                {fiche.temoignages.map((t) => (
+                {temoignages.map((t) => (
                   <Timeline.Item
                     key={t.id}
                     title={

@@ -1,15 +1,21 @@
+import { Anchor, Container } from '@mantine/core'
+import { lazy } from 'react'
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth'
 import Layout from './components/Layout'
-import { Container } from '@mantine/core'
 import { Vide } from './components/ui'
 import Accueil from './pages/Accueil'
-import Connexion from './pages/Connexion'
 import Fiche from './pages/Fiche'
-import Moderation from './pages/Moderation'
-import MonEspace from './pages/MonEspace'
 import Recherche from './pages/Recherche'
-import Signaler from './pages/Signaler'
+
+// Les pages publiques (celles qu'on ouvre depuis un lien WhatsApp) sont dans le bundle principal ;
+// le reste n'est telecharge qu'a la demande : moins de donnees mobiles au premier chargement.
+const Signaler = lazy(() => import('./pages/Signaler'))
+const Connexion = lazy(() => import('./pages/Connexion'))
+const MonEspace = lazy(() => import('./pages/MonEspace'))
+const MesAlertes = lazy(() => import('./pages/MesAlertes'))
+const Moderation = lazy(() => import('./pages/Moderation'))
+const Administration = lazy(() => import('./pages/Administration'))
 
 export default function App() {
   return (
@@ -23,13 +29,15 @@ export default function App() {
             <Route path="signaler" element={<Signaler />} />
             <Route path="connexion" element={<Connexion />} />
             <Route path="moi" element={<MonEspace />} />
+            <Route path="alertes" element={<MesAlertes />} />
             <Route path="moderation" element={<Moderation />} />
+            <Route path="admin" element={<Administration />} />
             <Route
               path="*"
               element={
                 <Container size="lg" pt={40}>
                   <Vide titre="Page introuvable">
-                    <Link to="/" className="lien">Retour à l'accueil</Link>
+                    <Anchor component={Link} to="/">Retour à l'accueil</Anchor>
                   </Vide>
                 </Container>
               }

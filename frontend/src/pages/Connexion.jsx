@@ -79,7 +79,7 @@ export default function Connexion() {
           )}
           <PasswordInput
             label="Mot de passe"
-            description={inscription ? '6 caractères au moins' : null}
+            description={inscription ? '8 caractères au moins' : null}
             value={f.motDePasse}
             onChange={champ('motDePasse')}
             error={erreurs.motDePasse}
@@ -103,8 +103,9 @@ export default function Connexion() {
       {!inscription && (
         <Paper p="sm" mt="xl" bg="var(--mantine-color-default-hover)" withBorder={false}>
           <Text size="xs" ff="monospace">
-            Démo · famille 699000000 / demo1234<br />
-            Démo · modérateur 600000000 / moderateur
+            Démo · familles 699000000 ou 677000000 / demo1234<br />
+            Démo · modérateur 600000000 / moderateur<br />
+            Démo · admin 600000001 / admin1234
           </Text>
         </Paper>
       )}

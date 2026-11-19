@@ -61,7 +61,10 @@ abstract class Dossier {
   - dateSoumission : datetime
   - datePublication : datetime
   + soumettre()
-  + changerStatut(nouveau, motif)
+  - version : int
+  + transitionner(cible, auteur, motif)
+  + masquer(motif)
+  + estVisiblePubliquement() : bool
   + lienPublic() : string
 }
 
@@ -152,27 +155,22 @@ class AccesIdentite {
   - date : datetime
 }
 
-' ---------- Retrouvailles ----------
-
-class DeclarationRetrouvaille {
-  - id : int
-  - description : text
-  - preuve : string
-  - nomDeclarant : string
-  - telephoneDeclarant : string
-  - statut : string
-  - date : datetime
-  + confirmer()
-  + infirmer()
-}
-
 ' ---------- Objets : rapprochement ----------
 
 class Correspondance {
   - id : int
   - score : int
-  - statut : string
+  - raisons : string
+  - statut : StatutCorrespondance
   - dateDetection : datetime
+  + valider()
+  + ecarter()
+}
+
+enum StatutCorrespondance {
+  A_EXAMINER
+  VALIDEE
+  ECARTEE
 }
 
 ' ---------- Alertes ----------
@@ -185,10 +183,29 @@ class AbonnementAlerte {
 
 class Notification {
   - id : int
-  - canal : string
+  - type : TypeNotification
+  - titre : string
   - message : string
-  - dateEnvoi : datetime
+  - lien : string
   - lue : bool
+  - dateCreation : datetime
+}
+
+enum TypeNotification {
+  NOUVELLE_DISPARITION
+  TEMOIGNAGE_PUBLIE
+  STATUT_DOSSIER
+  CORRESPONDANCE
+}
+
+interface CanalNotification {
+  + envoyer(n : Notification)
+}
+
+class Session {
+  - empreinteToken : string
+  - dateCreation : datetime
+  - dateExpiration : datetime
 }
 
 ' ================= Relations =================
@@ -219,15 +236,17 @@ Temoignage "0..*" -- "0..1" Utilisateur : valide par >
 AccesIdentite "0..*" -- "1" Temoignage
 AccesIdentite "0..*" -- "1" Utilisateur : consulte par >
 
-Dossier "1" *-- "0..*" DeclarationRetrouvaille
-DeclarationRetrouvaille "0..*" -- "0..1" Utilisateur : traitee par >
 
 Correspondance "0..*" -- "1" DossierObjet : objet perdu >
 Correspondance "0..*" -- "1" DossierObjet : objet trouve >
+Correspondance "0..*" -- "0..1" Utilisateur : traitee par >
 
 Utilisateur "1" *-- "0..*" AbonnementAlerte
 AbonnementAlerte "0..*" -- "1" Quartier : surveille >
 Utilisateur "1" -- "0..*" Notification : recoit >
-Notification "0..*" -- "1" Dossier : concerne >
+Notification --> TypeNotification
+CanalNotification ..> Notification : diffuse
+Correspondance --> StatutCorrespondance
+Utilisateur "1" *-- "0..*" Session
 
 @enduml

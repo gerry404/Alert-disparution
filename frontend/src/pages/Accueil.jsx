@@ -9,7 +9,7 @@ import { dateHeure, TYPES } from '../format'
 function Rubrique({ type, titre, lien }) {
   const [liste, setListe] = useState(null)
   useEffect(() => {
-    Dossiers.rechercher({ type }).then((d) => setListe(d.slice(0, 3))).catch(() => setListe([]))
+    Dossiers.rechercher({ type, taille: 3 }).then((p) => setListe(p.contenu)).catch(() => setListe([]))
   }, [type])
 
   if (liste?.length === 0) return null
@@ -34,7 +34,7 @@ function Rubrique({ type, titre, lien }) {
 function ALaUne() {
   const [d, setD] = useState(undefined)
   useEffect(() => {
-    Dossiers.rechercher({ type: 'PERSONNE' }).then((l) => setD(l[0] || null)).catch(() => setD(null))
+    Dossiers.rechercher({ type: 'PERSONNE', taille: 1 }).then((p) => setD(p.contenu[0] || null)).catch(() => setD(null))
   }, [])
   if (!d) return null
 

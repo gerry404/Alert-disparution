@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Container, Group, SegmentedControl, Select, SimpleGrid, Switch, Text, TextInput, Title } from '@mantine/core'
+import { Alert, Box, Button, Center, Container, Group, Pagination, SegmentedControl, Select, SimpleGrid, Switch, Text, TextInput, Title } from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
 import { IconSearch } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
@@ -6,45 +6,47 @@ import { useSearchParams } from 'react-router-dom'
 import { Dossiers } from '../api'
 import DossierCard, { CarteSquelette } from '../components/DossierCard'
 import { Vide } from '../components/ui'
-import { useQuartiers } from '../hooks'
+import { useQuartiers, useRequete } from '../hooks'
+
+const TAILLE = 12
 
 export default function Recherche() {
   const [params, setParams] = useSearchParams()
   const quartiers = useQuartiers()
   const [saisie, setSaisie] = useState(params.get('q') || '')
   const [saisieStable] = useDebouncedValue(saisie, 350)
-  const [resultats, setResultats] = useState(null)
-  const [erreur, setErreur] = useState('')
 
-  const type = params.get('type') || ''
-  const quartierId = params.get('quartierId') || null
-  const inclureResolus = params.get('inclureResolus') === 'true'
+  const filtres = {
+    type: params.get('type') || '',
+    quartierId: params.get('quartierId') || '',
+    q: params.get('q') || '',
+    inclureResolus: params.get('inclureResolus') === 'true',
+    page: Number(params.get('page') || 1) - 1,
+    taille: TAILLE,
+  }
 
-  function changer(cle, valeur) {
+  // l'URL est la source de verite : un lien partage redonne exactement la meme recherche
+  const { data, erreur, chargement } = useRequete(
+    (signal) => Dossiers.rechercher(filtres, { signal }),
+    [params.toString()],
+  )
+
+  function changer(cle, valeur, garderPage = false) {
     setParams((p) => {
       const n = new URLSearchParams(p)
       if (valeur) n.set(cle, valeur)
       else n.delete(cle)
+      if (!garderPage) n.delete('page')
       return n
-    }, { replace: true })
+    }, { replace: cle !== 'page' })
   }
 
   useEffect(() => {
-    if ((params.get('q') || '') !== saisieStable.trim()) changer('q', saisieStable.trim())
+    if (filtres.q !== saisieStable.trim()) changer('q', saisieStable.trim())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saisieStable])
 
-  useEffect(() => {
-    setResultats(null)
-    setErreur('')
-    Dossiers.rechercher({ type, quartierId, q: params.get('q') || '', inclureResolus })
-      .then(setResultats)
-      .catch((e) => {
-        setErreur(e.message)
-        setResultats([])
-      })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params])
+  const resultats = data?.contenu
 
   return (
     <Container size="lg" pt={40}>
@@ -67,14 +69,14 @@ export default function Recherche() {
             clearable
             searchable
             data={quartiers.map((q) => ({ value: String(q.id), label: q.nom }))}
-            value={quartierId}
+            value={filtres.quartierId || null}
             onChange={(v) => changer('quartierId', v)}
             style={{ flex: '1 1 200px' }}
           />
         </Group>
         <Group justify="space-between" mt="md" gap="md">
           <SegmentedControl
-            value={type}
+            value={filtres.type}
             onChange={(v) => changer('type', v)}
             data={[
               { value: '', label: 'Tout' },
@@ -85,27 +87,41 @@ export default function Recherche() {
           />
           <Switch
             label="Afficher aussi les dossiers résolus"
-            checked={inclureResolus}
+            checked={filtres.inclureResolus}
             onChange={(e) => changer('inclureResolus', e.currentTarget.checked ? 'true' : '')}
           />
         </Group>
       </Box>
 
-      {erreur && <Alert color="brique" mb="lg">{erreur}</Alert>}
+      {erreur && <Alert color="brique" mb="lg">{erreur.message}</Alert>}
 
-      {resultats?.length > 0 && (
+      {data && data.total > 0 && (
         <Text size="sm" c="dimmed" mb="md">
-          {resultats.length} résultat{resultats.length > 1 ? 's' : ''}
+          {data.total} résultat{data.total > 1 ? 's' : ''}
         </Text>
       )}
 
       <SimpleGrid cols={{ base: 1, xs: 2, md: 3 }} spacing="lg">
-        {resultats === null
-          ? [1, 2, 3, 4, 5, 6].map((i) => <CarteSquelette key={i} />)
-          : resultats.map((d) => <DossierCard key={d.id} dossier={d} />)}
+        {chargement && !resultats
+          ? Array.from({ length: 6 }, (_, i) => <CarteSquelette key={i} />)
+          : resultats?.map((d) => <DossierCard key={d.id} dossier={d} />)}
       </SimpleGrid>
 
-      {resultats?.length === 0 && !erreur && (
+      {data?.totalPages > 1 && (
+        <Center mt="xl">
+          <Pagination
+            total={data.totalPages}
+            value={data.page + 1}
+            onChange={(p) => {
+              changer('page', p > 1 ? String(p) : '', true)
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+            color="dark"
+          />
+        </Center>
+      )}
+
+      {data?.total === 0 && (
         <Vide titre="Rien trouvé">
           Essayez un autre quartier ou d'autres mots.{' '}
           <Button variant="subtle" size="compact-sm" onClick={() => { setSaisie(''); setParams({}) }}>

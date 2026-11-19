@@ -1,4 +1,4 @@
-// Petit client pour l'API Spring. Le token est garde dans le localStorage.
+// Client de l'API Spring. Le token de session est garde dans le localStorage.
 
 const CLE_TOKEN = 'ad_token'
 
@@ -15,74 +15,95 @@ export function setToken(token) {
     if (token) localStorage.setItem(CLE_TOKEN, token)
     else localStorage.removeItem(CLE_TOKEN)
   } catch {
-    /* navigation privee : tant pis, la session ne survivra pas au rechargement */
+    /* navigation privee : la session ne survivra pas au rechargement */
   }
 }
 
+/** Erreur API au format ProblemDetail : { status, detail, code, erreurs } */
 export class ApiError extends Error {
-  constructor(status, message, erreurs) {
+  constructor(status, message, code, erreurs) {
     super(message)
     this.status = status
+    this.code = code
     this.erreurs = erreurs || {}
   }
 }
 
-async function requete(methode, url, corps) {
-  const headers = {}
+const MESSAGES = {
+  401: 'Votre session a expiré. Reconnectez-vous.',
+  403: 'Vous n’avez pas accès à cette action.',
+  429: 'Trop de tentatives. Réessayez dans quelques minutes.',
+  500: 'Le serveur a rencontré un problème. Réessayez.',
+}
+
+async function requete(methode, url, corps, { signal } = {}) {
+  const headers = { Accept: 'application/json' }
   const token = getToken()
   if (token) headers.Authorization = `Bearer ${token}`
 
   let body
-  if (corps instanceof FormData) {
-    body = corps
-  } else if (corps !== undefined) {
+  if (corps instanceof FormData) body = corps
+  else if (corps !== undefined) {
     headers['Content-Type'] = 'application/json'
     body = JSON.stringify(corps)
   }
 
   let res
   try {
-    res = await fetch(`/api${url}`, { method: methode, headers, body })
-  } catch {
-    throw new ApiError(0, 'Connexion impossible. Vérifiez votre réseau.')
+    res = await fetch(`/api${url}`, { method: methode, headers, body, signal })
+  } catch (e) {
+    if (e.name === 'AbortError') throw e
+    throw new ApiError(0, 'Connexion impossible. Vérifiez votre réseau.', 'RESEAU')
   }
 
-  if (res.status === 204) return null
   const texte = await res.text()
-  const data = texte ? JSON.parse(texte) : null
+  let data = null
+  try {
+    data = texte ? JSON.parse(texte) : null
+  } catch {
+    /* corps non JSON */
+  }
 
   if (!res.ok) {
-    if (res.status === 401 && token) setToken(null)
-    const message = data?.message || (res.status === 401 ? 'Veuillez vous connecter.' : 'Une erreur est survenue.')
-    throw new ApiError(res.status, message, data?.erreurs)
+    if (res.status === 401 && token) {
+      setToken(null)
+      window.dispatchEvent(new Event('session-expiree'))
+    }
+    throw new ApiError(res.status, data?.detail || MESSAGES[res.status] || 'Une erreur est survenue.',
+      data?.code, data?.erreurs)
   }
   return data
 }
 
-export const api = {
-  get: (url) => requete('GET', url),
+const api = {
+  get: (url, opts) => requete('GET', url, undefined, opts),
   post: (url, corps) => requete('POST', url, corps ?? {}),
+  patch: (url, corps) => requete('PATCH', url, corps),
+  delete: (url) => requete('DELETE', url),
 }
 
-// --- appels metier ---
+function qs(params) {
+  const p = new URLSearchParams()
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== '' && v !== null && v !== undefined && v !== false) p.set(k, v)
+  })
+  const s = p.toString()
+  return s ? `?${s}` : ''
+}
+
+// ------------------------------------------------------------------ metier
 
 export const Auth = {
-  connexion: (telephone, motDePasse) => api.post('/auth/login', { telephone, motDePasse }),
-  inscription: (donnees) => api.post('/auth/register', donnees),
-  moi: () => api.get('/auth/me'),
-  deconnexion: () => api.post('/auth/logout'),
+  connexion: (telephone, motDePasse) => api.post('/auth/connexion', { telephone, motDePasse }),
+  inscription: (donnees) => api.post('/auth/inscription', donnees),
+  moi: () => api.get('/auth/moi'),
+  deconnexion: () => api.post('/auth/deconnexion'),
 }
 
 export const Dossiers = {
-  rechercher: (filtres = {}) => {
-    const params = new URLSearchParams()
-    Object.entries(filtres).forEach(([k, v]) => {
-      if (v !== '' && v !== null && v !== undefined && v !== false) params.set(k, v)
-    })
-    const qs = params.toString()
-    return api.get(`/dossiers${qs ? `?${qs}` : ''}`)
-  },
+  rechercher: (filtres = {}, opts) => api.get(`/dossiers${qs(filtres)}`, opts),
   fiche: (slug) => api.get(`/dossiers/${encodeURIComponent(slug)}`),
+  temoignages: (id) => api.get(`/dossiers/${id}/temoignages`),
   temoigner: (id, donnees) => api.post(`/dossiers/${id}/temoignages`, donnees),
   mesDossiers: () => api.get('/moi/dossiers'),
   signaler: (formData) => api.post('/moi/dossiers', formData),
@@ -95,11 +116,29 @@ export const Referentiel = {
   stats: () => api.get('/referentiel/stats'),
 }
 
+export const Alertes = {
+  zones: () => api.get('/moi/alertes'),
+  ajouter: (quartierId) => api.post('/moi/alertes', { quartierId }),
+  activer: (id, actif) => api.patch(`/moi/alertes/${id}`, { actif }),
+  supprimer: (id) => api.delete(`/moi/alertes/${id}`),
+  notifications: (page = 0) => api.get(`/moi/notifications?page=${page}`),
+  nonLues: () => api.get('/moi/notifications/non-lues'),
+  marquerLue: (id) => api.post(`/moi/notifications/${id}/lue`),
+  toutMarquerLu: () => api.post('/moi/notifications/lues'),
+}
+
 export const Moderation = {
   dossiers: () => api.get('/moderation/dossiers'),
-  action: (id, action, motif) => api.post(`/moderation/dossiers/${id}/${action}`, { motif }),
+  decider: (id, decision, motif) => api.post(`/moderation/dossiers/${id}/${decision}`, { motif }),
   temoignages: () => api.get('/moderation/temoignages'),
-  publierTemoignage: (id) => api.post(`/moderation/temoignages/${id}/publier`),
-  rejeterTemoignage: (id) => api.post(`/moderation/temoignages/${id}/rejeter`),
+  traiterTemoignage: (id, action) => api.post(`/moderation/temoignages/${id}/${action}`),
   identite: (id, motif) => api.post(`/moderation/temoignages/${id}/identite`, { motif }),
+  correspondances: () => api.get('/moderation/correspondances'),
+  trancher: (id, valider) => api.post(`/moderation/correspondances/${id}/${valider ? 'valider' : 'ecarter'}`),
+}
+
+export const Admin = {
+  utilisateurs: (q, page = 0) => api.get(`/admin/utilisateurs${qs({ q, page })}`),
+  modifier: (id, changements) => api.patch(`/admin/utilisateurs/${id}`, changements),
+  journal: (page = 0) => api.get(`/admin/journal-acces?page=${page}`),
 }
