@@ -43,6 +43,7 @@ public final class Textes {
         String t = brut.replaceAll("[\\s.-]", "");
         if (t.startsWith("+237")) t = t.substring(4);
         else if (t.startsWith("00237")) t = t.substring(5);
+        else if (t.startsWith("237") && t.length() == 12) t = t.substring(3);
         return t;
     }
 

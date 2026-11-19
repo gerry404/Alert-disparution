@@ -23,6 +23,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 
 /**
@@ -75,33 +83,33 @@ class DonneesDemo implements ApplicationRunner {
         var paul = personne(claire, "Disparition de Paul Ekwalla", "Paul Ekwalla", "M", 67, "Ndokoti", 3,
                 "Taille moyenne, cheveux blancs, lunettes à monture dorée. Chemise bleue, pantalon gris.",
                 "Boite légèrement de la jambe droite.",
-                "Parti vers 10h pour le marché de Ndokoti, il n'est pas rentré. Il a des pertes de mémoire.");
+                "Parti vers 10h pour le marché de Ndokoti, il n'est pas rentré. Il a des pertes de mémoire.", "paul");
         publier(paul, modo);
 
         var aicha = personne(yves, "Recherche Aïcha Moussa", "Aïcha Moussa", "F", 24, "Bonabéri", 6,
                 "Teint clair, environ 1m65, longues tresses.", "Cicatrice sur l'avant-bras gauche.",
-                "Vue pour la dernière fois au carrefour Ancien Dalip vers 19h.");
+                "Vue pour la dernière fois au carrefour Ancien Dalip vers 19h.", "aicha");
         publier(aicha, modo);
 
         // couple perdu / trouve qui doit sortir en correspondance
         var perdu = objet(claire, TypeDossier.OBJET_PERDU, "Tecno Camon 30 noir oublié dans un taxi", "Téléphone",
-                "Tecno", "Camon 30", "Noir", "Akwa", 2, "Coque transparente, autocollant des Lions Indomptables au dos.");
+                "Tecno", "Camon 30", "Noir", "Akwa", 2, "Coque transparente, autocollant des Lions Indomptables au dos.", "telephone-perdu");
         publier(perdu, modo);
         var trouve = objet(yves, TypeDossier.OBJET_TROUVE, "Téléphone Tecno trouvé près du marché Sandaga", "Téléphone",
-                "Tecno", "Camon", "Noir", "Akwa", 1, "Autocollant des Lions Indomptables, écran fissuré en bas.");
+                "Tecno", "Camon", "Noir", "Akwa", 1, "Autocollant des Lions Indomptables, écran fissuré en bas.", "telephone-trouve");
         publier(trouve, modo);
 
         var sac = objet(claire, TypeDossier.OBJET_TROUVE, "Sac à dos bleu trouvé à la gare voyageurs",
-                "Sac / Portefeuille", null, null, "Bleu", "Bali", 1, "Contient des cahiers d'écolier et une trousse rouge.");
+                "Sac / Portefeuille", null, null, "Bleu", "Bali", 1, "Contient des cahiers d'écolier et une trousse rouge.", "sac");
         publier(sac, modo);
 
         var cni = objet(yves, TypeDossier.OBJET_TROUVE, "CNI trouvée vers le rond-point Deido",
                 "Carte nationale d'identité", null, null, null, "Deido", 4,
-                "Nom commençant par M. Le propriétaire devra donner les autres informations.");
+                "Nom commençant par M. Le propriétaire devra donner les autres informations.", null);
         publier(cni, modo);
 
         objet(yves, TypeDossier.OBJET_PERDU, "Clés de voiture Toyota perdues", "Clés", "Toyota", null, "Noir",
-                "Makepe", 1, "Porte-clés en cuir marron avec une petite lampe.");
+                "Makepe", 1, "Porte-clés en cuir marron avec une petite lampe.", "cles");
 
         temoignages.soumettre(paul, new TemoignageRequest(Temoignage.Type.APERCU,
                 LocalDateTime.now().minusDays(1).withHour(16).withMinute(30), quartier("Logbaba").getId(),
@@ -127,7 +135,7 @@ class DonneesDemo implements ApplicationRunner {
     }
 
     private Long personne(Utilisateur u, String titre, String nom, String sexe, int age, String quartier,
-                          int ilYaJours, String physique, String signes, String circonstances) {
+                          int ilYaJours, String physique, String signes, String circonstances, String image) {
         DossierForm f = new DossierForm();
         f.setType(TypeDossier.PERSONNE);
         f.setTitre(titre);
@@ -139,11 +147,13 @@ class DonneesDemo implements ApplicationRunner {
         f.setCirconstances(circonstances);
         f.setDateFaits(LocalDateTime.now().minusDays(ilYaJours));
         f.setQuartierId(quartier(quartier).getId());
+        f.setPhoto(image(image));
         return dossiers.signaler(f, u).infos().id();
     }
 
     private Long objet(Utilisateur u, TypeDossier type, String titre, String categorie, String marque,
-                       String modele, String couleur, String quartier, int ilYaJours, String signes) {
+                       String modele, String couleur, String quartier, int ilYaJours, String signes,
+                       String image) {
         DossierForm f = new DossierForm();
         f.setType(type);
         f.setTitre(titre);
@@ -154,11 +164,35 @@ class DonneesDemo implements ApplicationRunner {
         f.setDateFaits(LocalDateTime.now().minusDays(ilYaJours));
         f.setQuartierId(quartier(quartier).getId());
         f.setCategorieId(categories.findByLibelle(categorie).map(Categorie::getId).orElseThrow());
+        f.setPhoto(image(image));
         return dossiers.signaler(f, u).infos().id();
     }
 
     private void publier(Long id, Utilisateur modo) {
         dossiers.decider(id, DecisionModeration.PUBLIER, "Vérifié (démo)", modo);
+    }
+
+    /** Image de demo (src/main/resources/demo), passee par le meme stockage qu'un envoi reel. */
+    private static MultipartFile image(String nom) {
+        if (nom == null) return null;
+        try (var in = DonneesDemo.class.getResourceAsStream("/demo/" + nom + ".jpg")) {
+            if (in == null) return null;
+            return new ImageDemo(nom + ".jpg", in.readAllBytes());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /** MultipartFile minimal pour reutiliser le parcours normal d'envoi de photo. */
+    private record ImageDemo(String nomFichier, byte[] octets) implements MultipartFile {
+        public String getName() { return "photo"; }
+        public String getOriginalFilename() { return nomFichier; }
+        public String getContentType() { return "image/jpeg"; }
+        public boolean isEmpty() { return octets.length == 0; }
+        public long getSize() { return octets.length; }
+        public byte[] getBytes() { return octets; }
+        public InputStream getInputStream() { return new ByteArrayInputStream(octets); }
+        public void transferTo(File dest) throws IOException { Files.write(dest.toPath(), octets); }
     }
 
     private Quartier quartier(String nom) {

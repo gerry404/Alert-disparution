@@ -21,7 +21,7 @@ function LigneDossier({ d, onRetrouve }) {
         <Grid.Col span="auto">
           <Group gap="xs">
             <Text className="surtitre" c={TYPES[i.type].couleur} fw={600}>{TYPES[i.type].surtitre}</Text>
-            <StatutBadge statut={i.statut} />
+            <StatutBadge statut={i.statut} type={i.type} />
             {d.mineur && <Badge color="gray">Mineur · non public</Badge>}
           </Group>
           <Text ff="heading" fz={20} fw={600} mt={2}>{i.titre}</Text>
@@ -35,7 +35,9 @@ function LigneDossier({ d, onRetrouve }) {
         </Grid.Col>
         {i.statut === 'PUBLIE' && (
           <Grid.Col span={{ base: 12, xs: 'content' }}>
-            <Button variant="default" size="sm" onClick={() => onRetrouve(d)}>C'est retrouvé</Button>
+            <Button variant="default" size="sm" onClick={() => onRetrouve(d)}>
+              {i.type === 'OBJET_TROUVE' ? 'Rendu au propriétaire' : i.type === 'OBJET_PERDU' ? 'Je l’ai récupéré' : 'Personne retrouvée'}
+            </Button>
           </Grid.Col>
         )}
       </Grid>

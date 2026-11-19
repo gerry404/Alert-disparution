@@ -94,7 +94,7 @@ export default function Fiche() {
         <Grid.Col span={{ base: 12, md: 7 }}>
           <Group gap="sm">
             <Text className="surtitre" c={type.couleur} fw={600}>{type.surtitre}</Text>
-            <StatutBadge statut={d.statut} />
+            <StatutBadge statut={d.statut} type={d.type} />
           </Group>
           <Title order={1} mt="xs">{d.titre}</Title>
           <Text size="sm" c="dimmed" mt="xs" ff="monospace">

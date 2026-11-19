@@ -16,6 +16,9 @@ const brique = [
 export const theme = createTheme({
   primaryColor: 'encre',
   primaryShade: { light: 9, dark: 1 },
+  // en sombre le bouton principal est clair : le texte doit passer en noir automatiquement
+  autoContrast: true,
+  luminanceThreshold: 0.45,
   colors: { encre, brique },
   black: '#1c1915',
   white: '#fffdf9',
@@ -33,7 +36,11 @@ export const theme = createTheme({
     },
   },
   components: {
-    Button: { defaultProps: { fw: 600 } },
+    // boutons en pilule (arrondi complet)
+    Button: { defaultProps: { fw: 600, radius: 999 } },
+    ActionIcon: { defaultProps: { radius: 999 } },
+    SegmentedControl: { defaultProps: { radius: 999 } },
+    Pagination: { defaultProps: { radius: 999 } },
     Badge: { defaultProps: { radius: 'xs', variant: 'light' } },
     Card: { defaultProps: { withBorder: true, radius: 'sm' } },
     Paper: { defaultProps: { withBorder: true } },

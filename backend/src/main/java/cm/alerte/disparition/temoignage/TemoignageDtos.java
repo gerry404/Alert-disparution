@@ -16,7 +16,7 @@ public final class TemoignageDtos {
             @Size(max = 255) String lieuPrecis,
             @NotBlank @Size(min = 10, max = 2000, message = "Entre 10 et 2000 caractères") String description,
             @Size(max = 100) String nomTemoin,
-            @NotBlank @Pattern(regexp = "^(\\+237|00237)?[\\s.-]?6([\\s.-]?\\d){8}$",
+            @NotBlank @Pattern(regexp = cm.alerte.disparition.utilisateur.UtilisateurDtos.REGEX_TEL,
                     message = "Numéro camerounais attendu (6XX XX XX XX)") String telephoneTemoin,
             boolean anonyme) {
     }

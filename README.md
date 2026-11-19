@@ -4,21 +4,23 @@ Plateforme de signalement et de recherche de personnes et d'objets disparus (pil
 
 ```
 conception/   diagramme de classes (PlantUML)
-backend/      API Spring Boot 4 / Java 21 (H2 en dev, MySQL en prod, Flyway)
+backend/      API Spring Boot 4 / Java 21, MySQL 8, Flyway
 frontend/     React 19 + Vite + Mantine
 ```
 
 ## Lancer
 
-```
-cd backend  && mvnw spring-boot:run      # http://localhost:8081
-cd frontend && npm install && npm run dev  # http://localhost:5173
-```
+1. **MySQL** : démarrer MySQL dans Laragon (port 3306), puis créer la base une seule fois :
+   ```
+   mysql -uroot < backend/scripts/creer-base.sql
+   ```
+   (base `alerte_disparition`, utilisateur `alerte` / `alerte`)
+2. **Backend** : `cd backend && mvnw spring-boot:run` → http://localhost:8081
+   (Flyway crée les tables, les données de démo se chargent si la base est vide)
+3. **Frontend** : `cd frontend && npm install && npm run dev` → http://localhost:5173
 
-Profil `dev` par défaut : base H2 dans `backend/data/`, schéma créé par Flyway, données de démo chargées
-au premier démarrage. Pour repartir de zéro : supprimer `backend/data/`.
-
-MySQL : `mvnw spring-boot:run -Dspring-boot.run.profiles=mysql` (variables `DB_URL`, `DB_USER`, `DB_PASSWORD`).
+**Voir la base** : phpMyAdmin de Laragon (http://localhost/phpmyadmin quand Laragon est démarré),
+ou HeidiSQL fourni avec Laragon. Connexion : `root` sans mot de passe, ou `alerte` / `alerte`.
 
 | Compte de démo | Téléphone | Mot de passe |
 |---|---|---|
@@ -32,6 +34,8 @@ MySQL : `mvnw spring-boot:run -Dspring-boot.run.profiles=mysql` (variables `DB_U
 ```
 cd backend && mvnw test
 ```
+
+Les tests n'ont pas besoin de MySQL : ils tournent sur H2 en mémoire (mode MySQL) avec les mêmes migrations.
 
 `CriteresAcceptationTest` rejoue les scénarios CA01 à CA15 du cahier des charges sur l'API réelle
 (H2 + migrations). Tests unitaires : machine à états des statuts, moteur de rapprochement.
@@ -87,3 +91,4 @@ des charges l'excluait du MVP). Le numéro du témoin est obligatoire pour pouvo
 - Canal SMS réel (après arbitrage du coût), envoi asynchrone avec reprise sur échec
 - Tests front (Vitest + Testing Library) et CI GitHub Actions
 - Diagrammes de cas d'utilisation et de séquence
+- Police des titres « Rock's Death » : licence usage personnel uniquement, à remplacer avant une mise en production
