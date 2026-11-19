@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { Auth, getToken, setToken } from './api'
 
 const AuthContext = createContext(null)
@@ -7,7 +7,6 @@ export function AuthProvider({ children }) {
   const [utilisateur, setUtilisateur] = useState(null)
   const [pret, setPret] = useState(!getToken())
 
-  // au chargement, on verifie que le token est toujours valable
   useEffect(() => {
     if (!getToken()) return
     Auth.moi()
@@ -16,12 +15,19 @@ export function AuthProvider({ children }) {
       .finally(() => setPret(true))
   }, [])
 
-  function ouvrirSession(session) {
+  // un 401 n'importe ou dans l'app (token expire, compte desactive) ferme la session
+  useEffect(() => {
+    const surExpiration = () => setUtilisateur(null)
+    window.addEventListener('session-expiree', surExpiration)
+    return () => window.removeEventListener('session-expiree', surExpiration)
+  }, [])
+
+  const ouvrirSession = useCallback((session) => {
     setToken(session.token)
     setUtilisateur(session.utilisateur)
-  }
+  }, [])
 
-  async function deconnecter() {
+  const deconnecter = useCallback(async () => {
     try {
       await Auth.deconnexion()
     } catch {
@@ -29,15 +35,19 @@ export function AuthProvider({ children }) {
     }
     setToken(null)
     setUtilisateur(null)
+  }, [])
+
+  const role = utilisateur?.role
+  const valeur = {
+    utilisateur,
+    pret,
+    ouvrirSession,
+    deconnecter,
+    estModerateur: role === 'MODERATEUR' || role === 'ADMIN',
+    estAdmin: role === 'ADMIN',
   }
 
-  const estModerateur = utilisateur?.role === 'MODERATEUR' || utilisateur?.role === 'ADMIN'
-
-  return (
-    <AuthContext.Provider value={{ utilisateur, pret, ouvrirSession, deconnecter, estModerateur }}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={valeur}>{children}</AuthContext.Provider>
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
