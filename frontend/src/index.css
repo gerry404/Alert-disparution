@@ -136,3 +136,26 @@ a {
   color: #fff;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
 }
+
+/* bandeau "Ensemble" : le poing reste a gauche sur le noir de la photo, le texte a droite */
+.bandeau-ensemble {
+  color: #fff;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.55) 45%, rgba(0, 0, 0, 0.92) 70%),
+    #000 url('./assets/ensemble-poing.jpg') left center / auto 100% no-repeat;
+  border-top: 3px solid var(--filet);
+  border-bottom: 3px solid var(--filet);
+}
+
+.bandeau-ensemble .titre-affiche {
+  color: #fff;
+}
+
+/* sur mobile la photo passe derriere tout le texte : voile plus fort */
+@media (max-width: 48em) {
+  .bandeau-ensemble {
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8)),
+      #000 url('./assets/ensemble-poing.jpg') center / cover no-repeat;
+  }
+}

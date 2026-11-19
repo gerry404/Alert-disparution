@@ -65,13 +65,13 @@ export default function Accueil() {
               onChange={(e) => setQ(e.currentTarget.value)}
               aria-label="Rechercher"
             />
-            <Button type="submit" size="md" variant="white" color="dark">Chercher</Button>
+            <Button type="submit" size="md" variant="white" c="#1c1915">Chercher</Button>
           </Group>
         </form>
 
         <Group gap="sm" justify="center">
           <Button component={Link} to="/signaler" color="brique.7">Signaler une disparition</Button>
-          <Button component={Link} to="/signaler?type=OBJET_TROUVE" variant="white" color="dark">J'ai trouvé un objet</Button>
+          <Button component={Link} to="/signaler?type=OBJET_TROUVE" variant="white" c="#1c1915">J'ai trouvé un objet</Button>
         </Group>
       </Stack>
       </Container>
@@ -112,6 +112,25 @@ export default function Accueil() {
         </SimpleGrid>
       </Box>
 
+    </Container>
+
+    {/* Bandeau de mobilisation */}
+    <Box className="bandeau-ensemble" mt={72}>
+      <Container size="lg" py={{ base: 56, md: 88 }}>
+        <Stack gap="md" maw={480} ml={{ base: 0, sm: 'auto' }} ta={{ base: 'center', sm: 'left' }} className="ensemble-texte">
+          <Title order={2} className="titre-affiche" fz={{ base: 34, sm: 44 }}>
+            Ensemble, on ne lâche rien.
+          </Title>
+          <Text c="rgba(255,255,255,0.85)">
+            Chaque partage rapproche une famille de celui ou celle qui manque. Un message sur WhatsApp,
+            une information transmise : c'est comme ça qu'on retrouve.
+          </Text>
+          <Box><Button component={Link} to="/dossiers" variant="white" c="#1c1915">Voir les avis en cours</Button></Box>
+        </Stack>
+      </Container>
+    </Box>
+
+    <Container size="lg">
       <Grid mt={72} gutter={40} className="rubrique" pt="lg">
         <Grid.Col span={{ base: 12, md: 5 }}>
           <Title order={2} className="titre-affiche" fz={32}>Parler sans s'exposer</Title>
